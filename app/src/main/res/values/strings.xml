@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WIFI建议</string>
+    <string name="url_fixed_text">URL已固定为 https://wifi-suggest.xna00.top/api/wifidata</string>
+</resources>
