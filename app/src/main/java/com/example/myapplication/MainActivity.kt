@@ -37,6 +37,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -313,47 +316,31 @@ fun MyApplicationApp() {
         drawerState = drawerState, drawerContent = {
             ModalDrawerSheet {
                 Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize()
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    // 应用名称
-                    Text(
-                        text = "WiFi 备份助手",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+                    // 获取Context
+                    val context = LocalContext.current
                     
                     // 版本信息
                     Text(
                         text = "版本: 1.6",
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
-                    // 应用描述
-                    Text(
-                        text = "一个用于备份和同步WiFi网络配置的应用",
-                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     
-                    // 分隔线
-                    Divider(modifier = Modifier.padding(bottom = 16.dp))
-                    
-                    // 作者信息
-                    Text(
-                        text = "作者: XNA",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    
-                    // 版权信息
-                    Text(
-                        text = "© 2024 WiFi Backup Assistant",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // GitHub地址
+                    val githubUrl = "https://github.com/xna00/wifi-suggest"
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(text = githubUrl)
+                    }
                 }
             }
 
