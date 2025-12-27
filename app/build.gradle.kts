@@ -28,6 +28,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 为CI构建添加未签名的发布版本
+            signingConfig = null
         }
     }
     compileOptions {
