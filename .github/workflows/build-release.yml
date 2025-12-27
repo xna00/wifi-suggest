@@ -45,9 +45,14 @@ jobs:
           # 获取APK文件大小
           APK_SIZE=$(du -b "$APK_PATH" | cut -f1)
           
+          # 重命名APK文件，添加版本号
+          NEW_APK_FILENAME="app-release-v${VERSION_NAME}-${VERSION_CODE}.apk"
+          NEW_APK_PATH="app/build/outputs/apk/release/$NEW_APK_FILENAME"
+          mv "$APK_PATH" "$NEW_APK_PATH"
+          
           echo "versionName=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "versionCode=$VERSION_CODE" >> "$GITHUB_OUTPUT"
-          echo "filename=$APK_FILENAME" >> "$GITHUB_OUTPUT"
+          echo "filename=$NEW_APK_FILENAME" >> "$GITHUB_OUTPUT"
           echo "size=$APK_SIZE" >> "$GITHUB_OUTPUT"
 
       - name: Generate Changelog
@@ -68,7 +73,8 @@ jobs:
             "versionCode": ${{ steps.apk-info.outputs.versionCode }},
             "buildTime": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
             "fileSize": ${{ steps.apk-info.outputs.size }},
-            "changelog": ${{ steps.changelog.outputs.content }}
+            "changelog": ${{ steps.changelog.outputs.content }},
+            "fileName": "${{ steps.apk-info.outputs.filename }}"
           }
           EOF
 

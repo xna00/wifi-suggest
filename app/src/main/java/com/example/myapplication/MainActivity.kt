@@ -66,7 +66,8 @@ data class WifiConfigWithEnable(
 data class VersionInfo(
     val versionCode: Int,
     val versionName: String,
-    val updateContent: String
+    val changelog: String,
+    val fileName: String
 )
 
 class MainActivity : ComponentActivity() {
@@ -231,7 +232,8 @@ fun CheckUpdateFeature() {
                     
                     // 对比版本号
                     if (versionInfo.versionCode > currentVersionCode) {
-                        updateUrl = "https://gh-proxy.org/https://github.com/xna00/wifi-suggest/blob/gh-pages/app-release-unsigned.apk"
+                        // 使用fileName构建下载URL
+                        updateUrl = "https://gh-proxy.org/https://github.com/xna00/wifi-suggest/blob/gh-pages/${versionInfo.fileName}"
                         showUpdateDialog = true
                     } else {
                         Toast.makeText(context, "当前已是最新版本", Toast.LENGTH_SHORT).show()
