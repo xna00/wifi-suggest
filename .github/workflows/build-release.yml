@@ -24,27 +24,30 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Grant execute permission for gradlew and gradlew.sh
+        run: |
+          chmod +x gradlew
+          chmod +x gradlew.sh
 
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew.sh assembleRelease
 
-      - name: Get APK File Size
-        id: apk-size
+      - name: Get APK File Size and Version Info
+        id: apk-info
         run: |
-          APK_PATH="app/build/outputs/apk/release/app-release.apk"
+          # 从output-metadata.json提取版本信息
+          VERSION_NAME=$(jq -r '.elements[0].versionName' app/build/outputs/apk/release/output-metadata.json)
+          VERSION_CODE=$(jq -r '.elements[0].versionCode' app/build/outputs/apk/release/output-metadata.json)
+          APK_FILENAME=$(jq -r '.elements[0].outputFile' app/build/outputs/apk/release/output-metadata.json)
+          APK_PATH="app/build/outputs/apk/release/$APK_FILENAME"
+          
+          # 获取APK文件大小
           APK_SIZE=$(du -b "$APK_PATH" | cut -f1)
-          echo "size=$APK_SIZE" >> "$GITHUB_OUTPUT"
-
-      - name: Get Version Information
-        id: version-info
-        run: |
-          # 从build.gradle.kts中提取版本信息
-          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
-          VERSION_CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' app/build.gradle.kts)
+          
           echo "versionName=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "versionCode=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "filename=$APK_FILENAME" >> "$GITHUB_OUTPUT"
+          echo "size=$APK_SIZE" >> "$GITHUB_OUTPUT"
 
       - name: Generate Changelog
         id: changelog
@@ -60,10 +63,10 @@ jobs:
           # 生成版本信息JSON文件
           cat > version-info.json << EOF
           {
-            "versionName": "${{ steps.version-info.outputs.versionName }}",
-            "versionCode": ${{ steps.version-info.outputs.versionCode }},
+            "versionName": "${{ steps.apk-info.outputs.versionName }}",
+            "versionCode": ${{ steps.apk-info.outputs.versionCode }},
             "buildTime": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-            "fileSize": ${{ steps.apk-size.outputs.size }},
+            "fileSize": ${{ steps.apk-info.outputs.size }},
             "changelog": ${{ steps.changelog.outputs.content }}
           }
           EOF
@@ -72,28 +75,25 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/${{ steps.apk-info.outputs.filename }}
           retention-days: 30
+
+      - name: Prepare Deploy Directory
+        run: |
+          # 创建deploy目录
+          mkdir -p deploy
+          # 复制APK文件和版本信息JSON到deploy目录
+          cp app/build/outputs/apk/release/${{ steps.apk-info.outputs.filename }} deploy/
+          cp version-info.json deploy/
+          cp app/build/outputs/apk/release/output-metadata.json deploy/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          publish_dir: ./deploy
           publish_branch: gh-pages
           keep_files: true
           allow_empty_commit: false
           force_orphan: false
-          commit_message: "Deploy Release APK v${{ steps.version-info.outputs.versionName }}"
-          # 只部署必要的文件
-          exclude_assets: |
-            .git
-            .github
-            .gradle
-            .idea
-            app/build
-            build
-            *.iml
-            *.bat
-            gradlew
-            local.properties
+          commit_message: "Deploy Release APK v${{ steps.apk-info.outputs.versionName }}"
