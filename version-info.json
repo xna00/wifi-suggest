@@ -1,8 +1,8 @@
 {
-  "versionName": "1.2",
-  "versionCode": 3,
-  "buildTime": "2025-12-27T08:35:21Z",
+  "versionName": "1.3",
+  "versionCode": 4,
+  "buildTime": "2025-12-27T08:44:05Z",
   "fileSize": 2440357,
-  "changelog": "Fix updateUrl generation to use fileName from version-info.json\n",
-  "fileName": "app-release-v1.2-3.apk"
+  "changelog": "Bump version to 1.3 (4)\n",
+  "fileName": "app-release-v1.3-4.apk"
 }
