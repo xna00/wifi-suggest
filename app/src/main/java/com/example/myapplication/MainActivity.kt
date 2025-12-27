@@ -303,18 +303,8 @@ fun MyApplicationApp() {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    // URL状态管理
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("wifi_backup_prefs", Context.MODE_PRIVATE)
-    val initialUrl = sharedPreferences.getString(
-        "backup_url", "https://wifi-suggest.xna00.top/api/wifidata"
-    ) ?: ""
-    var url by rememberSaveable { mutableStateOf(initialUrl) }
-
-    // 保存URL到SharedPreferences
-    LaunchedEffect(url) {
-        sharedPreferences.edit().putString("backup_url", url).apply()
-    }
+    // URL写死为固定值
+    val url = "https://wifi-suggest.xna00.top/api/wifidata"
 
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = {
@@ -322,18 +312,7 @@ fun MyApplicationApp() {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    // URL多行输入框
-                    TextField(
-                        value = url,
-                        onValueChange = { url = it },
-                        label = { Text("URL") },
-                        placeholder = { Text("请输入备份API地址") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        maxLines = 3,
-                        singleLine = false,
-                    )
+                    // URL已固定，不再需要输入框
                     
 
                 }
