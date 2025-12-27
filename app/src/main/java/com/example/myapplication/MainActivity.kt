@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +60,13 @@ import kotlinx.coroutines.withContext
 // 定义带启用状态的WiFi配置数据类
 data class WifiConfigWithEnable(
     val ssid: String, val password: String, val enable: Boolean = true
+)
+
+// 版本信息数据类
+data class VersionInfo(
+    val versionCode: Int,
+    val versionName: String,
+    val updateContent: String
 )
 
 class MainActivity : ComponentActivity() {
@@ -192,6 +200,90 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// 检查更新功能
+@Composable
+fun CheckUpdateFeature() {
+    val context = LocalContext.current
+    val queue = remember { Volley.newRequestQueue(context) }
+    val gson = remember { Gson() }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateUrl by remember { mutableStateOf("") }
+
+    // 检查更新
+    fun checkForUpdates() {
+        val versionUrl = "https://gh-proxy.org/https://github.com/xna00/wifi-suggest/blob/gh-pages/version-info.json"
+        val stringRequest = StringRequest(
+            Request.Method.GET, versionUrl, 
+            { response ->
+                try {
+                    // 解析版本信息
+                    val versionInfo = gson.fromJson(response, VersionInfo::class.java)
+                    
+                    // 获取当前应用版本
+                    val packageInfo = context.packageManager.getPackageInfo(
+                        context.packageName, 0
+                    )
+                    val currentVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        packageInfo.longVersionCode.toInt()
+                    } else {
+                        packageInfo.versionCode
+                    }
+                    
+                    // 对比版本号
+                    if (versionInfo.versionCode > currentVersionCode) {
+                        updateUrl = "https://gh-proxy.org/https://github.com/xna00/wifi-suggest/blob/gh-pages/app-release-unsigned.apk"
+                        showUpdateDialog = true
+                    } else {
+                        Toast.makeText(context, "当前已是最新版本", Toast.LENGTH_SHORT).show()
+                        Log.i("CheckUpdate", "当前已是最新版本")
+                    }
+                } catch (e: Exception) {
+                    Log.e("CheckUpdate", "解析版本信息失败: ${e.message}")
+                    // 不显示错误提示，避免打扰用户
+                }
+            },
+            { error ->
+                Log.e("CheckUpdate", "网络请求失败: ${error.message}")
+                // 不显示错误提示，避免打扰用户
+            }
+        )
+        queue.add(stringRequest)
+    }
+
+    // 跳转到下载链接
+    fun goToDownload() {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl))
+        context.startActivity(intent)
+    }
+
+    // 自动检查更新 - 进入应用时自动调用，无需手动按钮
+    LaunchedEffect(Unit) {
+        checkForUpdates()
+    }
+
+    // 更新对话框
+    if (showUpdateDialog) {
+        AlertDialog(
+            onDismissRequest = { showUpdateDialog = false },
+            title = { Text("发现新版本") },
+            text = { Text("有新版本可用，是否前往下载？") },
+            confirmButton = {
+                Button(onClick = { 
+                    goToDownload()
+                    showUpdateDialog = false
+                }) {
+                    Text("前往下载")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showUpdateDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -230,6 +322,8 @@ fun MyApplicationApp() {
                         maxLines = 3,
                         singleLine = false,
                     )
+                    
+
                 }
             }
 
@@ -247,6 +341,8 @@ fun MyApplicationApp() {
 
         }
     }
+    CheckUpdateFeature()
+
 }
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -392,6 +488,8 @@ fun Home(
                 Text("全部禁用")
             }
         }
+        
+        // 检查更新功能已移至侧边栏菜单中
 
         LazyColumn {
             // 对WiFi列表进行排序，当前连接的WiFi排在最前面
