@@ -1,8 +1,8 @@
 {
-  "versionName": "1.4",
-  "versionCode": 5,
-  "buildTime": "2025-12-27T09:36:26Z",
+  "versionName": "1.5",
+  "versionCode": 6,
+  "buildTime": "2025-12-27T09:52:38Z",
   "fileSize": 2440357,
-  "changelog": "Add key\n",
-  "fileName": "app-release-v1.4-5.apk"
+  "changelog": "Bump version to 1.5 (6)\n",
+  "fileName": "app-release-v1.5-6.apk"
 }
