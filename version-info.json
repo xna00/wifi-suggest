@@ -1,7 +1,8 @@
 {
   "versionName": "1.2",
   "versionCode": 3,
-  "buildTime": "2025-12-27T08:01:33Z",
+  "buildTime": "2025-12-27T08:35:21Z",
   "fileSize": 2440357,
-  "changelog": "Add signingConfigs\n"
+  "changelog": "Fix updateUrl generation to use fileName from version-info.json\n",
+  "fileName": "app-release-v1.2-3.apk"
 }
