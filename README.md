@@ -26,7 +26,7 @@ git clone https://github.com/xna00/wifi-suggest.git
 cd wifi-suggest
 
 # 构建Release版本
-./gradlew.sh assembleRelease
+./gradlew assembleRelease
 
 # 生成的APK位于
 # app/build/outputs/apk/release/app-release.apk
@@ -60,22 +60,3 @@ cd wifi-suggest
 ### v1.5
 - 实现了WiFi网络的备份和恢复功能
 - 添加了云端同步功能
-
-## 贡献指南
-
-欢迎提交Issue和Pull Request！
-
-1. Fork本仓库
-2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开一个Pull Request
-
-## 许可证
-
-本项目采用MIT许可证 - 查看[LICENSE](LICENSE)文件了解详情
-
-## 联系方式
-
-- GitHub: [https://github.com/xna00/wifi-suggest](https://github.com/xna00/wifi-suggest)
-- 作者: XNA
