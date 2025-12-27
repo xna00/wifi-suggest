@@ -80,20 +80,15 @@ jobs:
 
       - name: Prepare Deploy Directory
         run: |
-          # 创建deploy目录
-          mkdir -p deploy
-          # 复制APK文件和版本信息JSON到deploy目录
-          cp app/build/outputs/apk/release/${{ steps.apk-info.outputs.filename }} deploy/
-          cp version-info.json deploy/
-          cp app/build/outputs/apk/release/output-metadata.json deploy/
+          # 创建ota目录
+          mkdir -p ota
+          # 复制APK文件和版本信息JSON到ota目录
+          cp app/build/outputs/apk/release/${{ steps.apk-info.outputs.filename }} ota/
+          cp version-info.json ota/
+          cp app/build/outputs/apk/release/output-metadata.json ota/
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deploy
-          publish_branch: gh-pages
-          keep_files: true
-          allow_empty_commit: false
-          force_orphan: false
-          commit_message: "Deploy Release APK v${{ steps.apk-info.outputs.versionName }}"
+      - name: Deploy 
+        uses: JamesIves/github-pages-deploy-action@v4.2.2 
+        with: 
+          branch: gh-pages 
+          folder: ./ota
