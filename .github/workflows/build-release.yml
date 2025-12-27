@@ -1,4 +1,4 @@
-name: Build Release APK
+name: Build and Deploy Release APK
 
 on:
   push:
@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的git历史，用于生成更新日志
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -28,9 +30,70 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
+      - name: Get APK File Size
+        id: apk-size
+        run: |
+          APK_PATH="app/build/outputs/apk/release/app-release.apk"
+          APK_SIZE=$(du -b "$APK_PATH" | cut -f1)
+          echo "size=$APK_SIZE" >> "$GITHUB_OUTPUT"
+
+      - name: Get Version Information
+        id: version-info
+        run: |
+          # 从build.gradle.kts中提取版本信息
+          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          VERSION_CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' app/build.gradle.kts)
+          echo "versionName=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "versionCode=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # 获取最新的git commit信息作为更新日志
+          CHANGELOG=$(git log -1 --pretty=format:"%s%n%b")
+          # 转义特殊字符
+          CHANGELOG_ESCAPED=$(echo "$CHANGELOG" | jq -sRr @json)
+          echo "content=$CHANGELOG_ESCAPED" >> "$GITHUB_OUTPUT"
+
+      - name: Create Version Info JSON
+        run: |
+          # 生成版本信息JSON文件
+          cat > version-info.json << EOF
+          {
+            "versionName": "${{ steps.version-info.outputs.versionName }}",
+            "versionCode": ${{ steps.version-info.outputs.versionCode }},
+            "buildTime": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "fileSize": ${{ steps.apk-size.outputs.size }},
+            "changelog": ${{ steps.changelog.outputs.content }}
+          }
+          EOF
+
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          keep_files: true
+          allow_empty_commit: false
+          force_orphan: false
+          commit_message: "Deploy Release APK v${{ steps.version-info.outputs.versionName }}"
+          # 只部署必要的文件
+          exclude_assets: |
+            .git
+            .github
+            .gradle
+            .idea
+            app/build
+            build
+            *.iml
+            *.bat
+            gradlew
+            local.properties
