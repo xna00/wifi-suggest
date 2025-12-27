@@ -444,6 +444,9 @@ fun Home(
             Log.i("MyApplication", "Response is: $response")
             val backup = gson.fromJson(response, WifiBackup::class.java)
 
+            // 记录当前列表大小
+            val oldSize = wifiBackupWithEnable.size
+            
             // 将获取的WiFi列表转换为带启用状态的列表
             // 如果本地有保存的启用状态，使用保存的，否则默认启用
             val newWifiList = backup.wifiList.map { newWifi ->
@@ -457,8 +460,12 @@ fun Home(
             }
 
             wifiBackupWithEnable = newWifiList
+            
+            // 计算增加的数量
+            val addedCount = newWifiList.size - oldSize
+            
             Toast.makeText(
-                context, "获取WiFi列表成功，数量：${newWifiList.size}", Toast.LENGTH_LONG
+                context, "获取WiFi列表成功，新增：${addedCount}条，总数：${newWifiList.size}", Toast.LENGTH_LONG
             ).show()
         }, {
             // 错误回调
