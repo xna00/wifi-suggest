@@ -54,6 +54,7 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -64,10 +65,12 @@ data class WifiConfigWithEnable(
 
 // 版本信息数据类
 data class VersionInfo(
-    val versionCode: Int,
-    val versionName: String,
-    val changelog: String,
-    val fileName: String
+    @SerializedName("versionCode") val versionCode: Int,
+    @SerializedName("versionName") val versionName: String,
+    @SerializedName("changelog") val changelog: String,
+    @SerializedName("fileName") val fileName: String,
+    @SerializedName("buildTime") val buildTime: String,
+    @SerializedName("fileSize") val fileSize: Long,
 )
 
 class MainActivity : ComponentActivity() {
