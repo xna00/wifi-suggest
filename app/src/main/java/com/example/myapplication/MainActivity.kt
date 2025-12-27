@@ -155,6 +155,13 @@ class MainActivity : ComponentActivity() {
                 override fun getBody(): ByteArray {
                     return jsonObject.toString().toByteArray(charset("UTF-8"))
                 }
+                
+                @Throws(com.android.volley.AuthFailureError::class)
+                override fun getHeaders(): Map<String, String> {
+                    val headers = HashMap<String, String>()
+                    headers["key"] = "1234"
+                    return headers
+                }
             }
             
             // 添加到请求队列
@@ -428,7 +435,8 @@ fun Home(
             "$url?model=$deviceModel&deviceId=$deviceId"
         }
 
-        val stringRequest = StringRequest(Request.Method.GET, urlWithParams, { response ->
+        // 直接添加header，因为用户确认该请求一定是wifi-suggest.xna00.top域名
+        val stringRequest = object : StringRequest(Request.Method.GET, urlWithParams, { response ->
             // 成功回调
             Log.i("MyApplication", "Response is: $response")
             val backup = gson.fromJson(response, WifiBackup::class.java)
@@ -453,7 +461,14 @@ fun Home(
             // 错误回调
             Log.e("MyApplication", "That didn't work!")
             Toast.makeText(context, "获取WiFi列表失败", Toast.LENGTH_LONG).show()
-        })
+        }) {
+            @Throws(com.android.volley.AuthFailureError::class)
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["key"] = "1234"
+                return headers
+            }
+        }
         // Add the request to the RequestQueue.
         queue.add(stringRequest)
     }
