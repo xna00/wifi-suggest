@@ -93,6 +93,8 @@ jobs:
           cp app/build/outputs/apk/release/${{ steps.apk-info.outputs.filename }} ota/
           cp version-info.json ota/
           cp app/build/outputs/apk/release/output-metadata.json ota/
+          # 复制一份名为wifi-suggest.apk的版本
+          cp app/build/outputs/apk/release/${{ steps.apk-info.outputs.filename }} ota/wifi-suggest.apk
 
       - name: Deploy 
         uses: JamesIves/github-pages-deploy-action@v4.2.2 

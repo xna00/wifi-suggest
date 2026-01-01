@@ -1,5 +1,8 @@
 package com.example.myapplication
 
+import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,7 +19,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +44,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,7 +61,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.android.volley.AuthFailureError
 import com.android.volley.Request
+import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.myapplication.ui.theme.MyApplicationTheme
@@ -63,6 +71,16 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.ui.graphics.asImageBitmap
+import java.util.Base64
+import org.json.JSONObject
 
 // 定义带启用状态的WiFi配置数据类
 data class WifiConfigWithEnable(
@@ -139,18 +157,18 @@ class MainActivity : ComponentActivity() {
             }
             
             // 创建JSON请求体
-            val jsonObject = org.json.JSONObject()
+            val jsonObject = JSONObject()
             jsonObject.put("content", fileContent)
             
             // 创建StringRequest发送POST请求
             val stringRequest = object : StringRequest(
-                Request.Method.POST, uploadUrl,
-                com.android.volley.Response.Listener { response ->
+                Method.POST, uploadUrl,
+                Response.Listener { response ->
                     // 请求成功
                     Log.i(TAG, "Request successful: $response")
                     Toast.makeText(this, "文件内容发送成功", Toast.LENGTH_LONG).show()
                 },
-                com.android.volley.Response.ErrorListener { error ->
+                Response.ErrorListener { error ->
                     // 请求失败
                     Log.e(TAG, "Request failed: ${error.message}")
                     Toast.makeText(this, "文件内容发送失败: ${error.message}", Toast.LENGTH_LONG).show()
@@ -160,12 +178,12 @@ class MainActivity : ComponentActivity() {
                     return "application/json"
                 }
                 
-                @Throws(com.android.volley.AuthFailureError::class)
+                @Throws(AuthFailureError::class)
                 override fun getBody(): ByteArray {
                     return jsonObject.toString().toByteArray(charset("UTF-8"))
                 }
                 
-                @Throws(com.android.volley.AuthFailureError::class)
+                @Throws(AuthFailureError::class)
                 override fun getHeaders(): Map<String, String> {
                     val headers = HashMap<String, String>()
                     headers["key"] = "1234"
@@ -193,7 +211,7 @@ class MainActivity : ComponentActivity() {
         // Android 13及以上需要POST_NOTIFICATIONS权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
-                    this, android.Manifest.permission.POST_NOTIFICATIONS
+                    this, Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 // 权限已授予
@@ -201,7 +219,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 // 请求权限
                 Log.i(TAG, "Requesting notification permission")
-                requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
             // Android 13以下不需要动态请求通知权限
@@ -341,6 +359,59 @@ fun MyApplicationApp() {
                     ) {
                         Text(text = githubUrl)
                     }
+
+                    val downloadUrl = "https://gh-proxy.org/https://github.com/xna00/wifi-suggest/blob/gh-pages/wifi-suggest.apk"
+
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(text = downloadUrl)
+                    }
+
+                    // 二维码图片
+                    Text(
+                        text = "扫描二维码下载\n点击二维码复制下载链接",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    
+                    // 将Base64字符串转换为Bitmap的函数
+                    @RequiresApi(Build.VERSION_CODES.O)
+                    fun base64ToBitmap(base64String: String): Bitmap? {
+                        return try {
+                            val decodedBytes = Base64.getDecoder().decode(base64String)
+                            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
+                    }
+
+                    val base64QrCode = orcodeUrl.split("base64,")[1]
+                    
+                    val qrBitmap = base64ToBitmap(base64QrCode)
+
+                    Image(
+                        bitmap = qrBitmap!!.asImageBitmap(),
+                        contentDescription = "下载二维码",
+                        modifier = Modifier.width(200.dp)
+                            .height(200.dp)
+//                            .fillMaxWidth()
+                            .clickable(
+                            true,
+                            onClick = {
+                                val clipboard = context.getSystemService(ClipboardManager::class.java)
+                                val clip = ClipData.newPlainText("downloadUrl", downloadUrl)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "下载链接已复制", Toast.LENGTH_SHORT).show()
+                            }
+                            ),
+                    )
                 }
             }
 
@@ -444,7 +515,7 @@ fun Home(
         }
 
         // 直接添加header，因为用户确认该请求一定是wifi-suggest.xna00.top域名
-        val stringRequest = object : StringRequest(Request.Method.GET, urlWithParams, { response ->
+        val stringRequest = object : StringRequest(Method.GET, urlWithParams, { response ->
             // 成功回调
             Log.i("MyApplication", "Response is: $response")
             val backup = gson.fromJson(response, WifiBackup::class.java)
@@ -477,7 +548,7 @@ fun Home(
             Log.e("MyApplication", "That didn't work!")
             Toast.makeText(context, "获取WiFi列表失败", Toast.LENGTH_LONG).show()
         }) {
-            @Throws(com.android.volley.AuthFailureError::class)
+            @Throws(AuthFailureError::class)
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
                 headers["key"] = "1234"
