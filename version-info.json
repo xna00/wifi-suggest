@@ -1,8 +1,8 @@
 {
-  "versionName": "1.7",
-  "versionCode": 8,
-  "buildTime": "2025-12-27T11:22:23Z",
+  "versionName": "1.8",
+  "versionCode": 9,
+  "buildTime": "2026-01-01T05:59:48Z",
   "fileSize": 2296565,
-  "changelog": "Update README.md\n",
-  "fileName": "app-release-v1.7-8.apk"
+  "changelog": "Bump version to 1.8\n",
+  "fileName": "app-release-v1.8-9.apk"
 }
