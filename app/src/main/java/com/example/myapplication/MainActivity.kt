@@ -341,7 +341,7 @@ fun MyApplicationApp() {
                     
                     // 版本信息
                     Text(
-                        text = "版本: 1.6",
+                        text = "版本: 1.8",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
